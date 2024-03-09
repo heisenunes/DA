@@ -138,11 +138,12 @@ unordered_map<string,Reservoir> getReservoirs(const string &filename){
 
 int main()
 {
-    /*unordered_map<string,City> cities;
+    /*
+    unordered_map<string,City> cities;
 
-    cities = getCities("Project1LargeDataSet/Project1LargeDataSet/Cities.csv");
+    cities = getCities("Project1DataSetSmall/Project1DataSetSmall/Cities_Madeira.csv");
     
-   string searchCode = "C_2";
+   string searchCode = "C_4";
     auto it = cities.find(searchCode);
    
    
@@ -159,8 +160,8 @@ int main()
     } else {
         cout << "City with code " << searchCode << " not found." << endl;
     }
- */
- 
+
   
   return 0;
+     */
 }
