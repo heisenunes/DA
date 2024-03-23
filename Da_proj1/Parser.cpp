@@ -7,8 +7,11 @@
 #include <unordered_map>
 #include "Station.h"
 #include "Reservoir.h"
+#include "data_structures/Graph.h"
 
 using namespace std;
+
+const int INFINITY_INT = std::numeric_limits<int>::max(); 
 
 unordered_map <string,City> getCities(const string &filename){
 
@@ -83,8 +86,6 @@ unordered_map<string,Station> getStations(const string &filename){
     file.close();
     return StationMap;
 
-
-
 }
 
 unordered_map<string,Reservoir> getReservoirs(const string &filename){
@@ -125,8 +126,92 @@ unordered_map<string,Reservoir> getReservoirs(const string &filename){
     file.close();
     return ReservoirMap;
 
+}
+
+Graph<string> construct_graph(const string &filename){
+    Graph<string> g;
+    //int edges = 0;
+   
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cerr << "Error opening file: " << filename << endl;
+        return g; // Return empty vector
+    }
+  
+  //Add SUPER SOURCE
+   string Super_Source = "S";
+// Add SUPER_SINK
+   string Super_Target = "T";
+
+   g.addVertex(Super_Source);
+   g.addVertex(Super_Target);
+
+    string line;
+    getline(file, line); // Skip header line
+
+     while (getline(file, line)) {
+        stringstream ss(line);
+
+        string service_point_a, service_point_b,capacity,direction;
+        getline(ss, service_point_a, ',');
+        getline(ss, service_point_b, ',');
+        getline(ss, capacity, ',');
+        getline(ss, direction, ',');
+
+        if(g.findVertex(service_point_a) == nullptr){
+             g.addVertex(service_point_a);
+
+             if (service_point_a[0] == 'R')
+             {
+                 g.addEdge(Super_Source, service_point_a, INFINITY_INT);
+             }
+             
+        }
+
+        if(g.findVertex(service_point_b) == nullptr){
+             g.addVertex(service_point_b);
+
+             if (service_point_b[0] == 'C')
+             {
+                g.addEdge(service_point_b, Super_Target, INFINITY_INT);
+             }
+             
+        }
+        
+       
+        //cout << "EDGE:" << endl;
+        //cout << service_point_a << endl;
+        //cout << service_point_b << endl;
+        
+    
+        // Convert strings to appropriate types
+        double capacity_num = stod(capacity);
+        int direction_num = stoi(direction);
+        
+        
+        //cout << capacity_num << endl;
+        //cout << direction_num << endl;
+
+        if(direction_num == 0){
+            g.addBidirectionalEdge(service_point_a,service_point_b,capacity_num);
+            //cout << "BIDIRECTIONAL: ";
+            //cout << "(" << service_point_a << "," << service_point_b << ")" << "with capacity: " << capacity_num << endl;
+        }
+
+        else{
+            g.addEdge(service_point_a,service_point_b,capacity_num);
+            //cout << "NORMAL: ";
+            //cout << "(" << service_point_a << "," << service_point_b << ")" << "with capacity: " << capacity_num << endl;
+        }
+
+    }
 
 
+
+   // cout << "NUMBER OF EDGES: " << edges << endl;
+   
+    
+  return g;
 }
 
 
@@ -136,10 +221,28 @@ unordered_map<string,Reservoir> getReservoirs(const string &filename){
 
 
 
-int main()
-{
-    /*
-    unordered_map<string,City> cities;
+
+
+/*int main(){
+    Graph<string> graph = construct_graph("Project1DataSetSmall/Project1DataSetSmall/Pipes_Madeira.csv");
+
+    cout << "Numero de vertices: " << graph.getNumVertex() << endl;
+
+    vector<Vertex<string>*> v = graph.getVertexSet();
+
+    for (auto vertexPtr : v) {
+    std::cout << vertexPtr->getInfo() << std::endl; // Supondo que getInfo() retorna o conteúdo do vértice como uma string
+}
+
+    
+
+
+    
+
+
+
+    
+    /*unordered_map<string,City> cities;
 
     cities = getCities("Project1DataSetSmall/Project1DataSetSmall/Cities_Madeira.csv");
     
@@ -163,5 +266,6 @@ int main()
 
   
   return 0;
-     */
+    
 }
+*/
