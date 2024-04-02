@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include "Station.h"
 #include "Reservoir.h"
 #include "data_structures/Graph.h"
