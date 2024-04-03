@@ -270,7 +270,7 @@ std::vector<std::vector<Edge<T>*> > Graph<T>::getPaths(const T& source, const T&
         v->setVisited(false);
     }
   
-    dfs_target(source, dest, path, paths); //find all possible paths with dfs
+    dfs_target(source, dest, path, paths); //find a path between source and destination with dfs
 
     return paths;
 }
@@ -306,6 +306,7 @@ void printAllPaths(const std::vector<std::vector<Edge<T>*> >& paths) {
 
 /** **/
 
+/** Balance Flow **/
 //sort edges based on their capacity to flow ratio or by flow if equal
 template <class T>
 class EdgeComparator {
@@ -335,6 +336,7 @@ void rebalanceFlow(Graph<T> *g){
       }
 
   bool continueBalancing = true;
+  int improvementMade = 0;
   int count = 0;
   
   while (continueBalancing) {
@@ -345,7 +347,9 @@ void rebalanceFlow(Graph<T> *g){
       if (edge->getFlow() == 0) {break;}
 
       auto paths = g->getPaths(edge->getOrig()->getInfo(), edge->getDest()->getInfo());
-      if (paths.empty()) continue;
+      if (paths.empty()) {
+        //std::cout << "NO PATH FOUND!" << endl; 
+        continue;}
 
         double maxDiff = -1;
         std::vector<Edge<T>*> bestPath;
@@ -373,22 +377,34 @@ void rebalanceFlow(Graph<T> *g){
     afterMetrics = flowMetrics(g);
 
     //check if we need/can iterate
-    continueBalancing = !(checkMetricImprovement(beforeMetrics, afterMetrics)) && count < pipes.size();
+    continueBalancing = checkMetricImprovement(beforeMetrics, afterMetrics) && count < pipes.size();
+    if (continueBalancing){improvementMade ++;};
 
+    //printFlowMetrics(beforeMetrics);
     beforeMetrics = afterMetrics;
     count++;
+
   }
 
 
+   if (improvementMade > 0){
+      cout << "Network balance was Improved " << endl;
+      printFlowMetrics(afterMetrics);
+    }
+
+    if (improvementMade == 0){
+      cout << "No improvement to the network is possible" << endl;
+    }
   //printFlowDetails(&gOriginal);
   //beforeMetrics = flowMetrics(&gOriginal);
   //printFlowMetrics(beforeMetrics);
-  printFlowDetails(g);
-  printFlowMetrics(afterMetrics);
-  cout << "Count: " << count << endl;
-
+  
+  //printFlowDetails(g);
+  //printFlowMetrics(afterMetrics);
+  //cout << "Count: " << count << endl;
 }
 
+/** **/
 
 template <class T>
 double t2_3(Graph<T> *g, std::string source, std::string target) {
@@ -426,15 +442,16 @@ double t2_3(Graph<T> *g, std::string source, std::string target) {
   cout << "BEFORE BALANCING:" << endl;
 
   FlowMetrics beforeMetrics = flowMetrics(g);
-  printFlowDetails(g);
+  //printFlowDetails(g);
   printFlowMetrics(beforeMetrics);
   
   //auto paths = g->getPaths("R_7", "C_20");
-  //auto paths = g->getPaths("PS_25", "C_2");
+  //auto paths = g->getPaths("PS_51", "C_10");
+  //auto paths = g->getPaths("PS_51", "C_16");
+  //auto paths = g->getPaths("PS_70", "C_10");
   //printAllPaths(paths);
   cout << "AFTER BALANCING:" << endl;
   rebalanceFlow(g);
 
   return maxFlow;
 }
-      
