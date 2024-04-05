@@ -14,11 +14,11 @@ int main(){
     cout << "-------------------------------" << endl;
 
 
-Graph<string> g = construct_graph("Project1LargeDataSet/Project1LargeDataSet/Pipes.csv");
+Graph<string> g = construct_graph("Project1DataSetSmall/Project1DataSetSmall/Pipes_Madeira.csv");
 
-unordered_map<string, Reservoir> reservoirs = getReservoirs("Project1LargeDataSet/Project1LargeDataSet/Reservoir.csv");
-unordered_map<string, Station> stations = getStations("Project1LargeDataSet/Project1LargeDataSet/Stations.csv");
-unordered_map<string, City> cities = getCities("Project1LargeDataSet/Project1LargeDataSet/Cities.csv");
+unordered_map<string, Reservoir> reservoirs = getReservoirs("Project1DataSetSmall/Project1DataSetSmall/Reservoirs_Madeira.csv");
+unordered_map<string, Station> stations = getStations("Project1DataSetSmall/Project1DataSetSmall/Stations_Madeira.csv");
+unordered_map<string, City> cities = getCities("Project1DataSetSmall/Project1DataSetSmall/Cities_Madeira.csv");
 
 
 bool validChoice = false;
@@ -41,17 +41,28 @@ while(!validChoice){
 
  if(task_choice == 1){
 
-    for (const auto& pair : cities) {
-      cout << pair.second.getCity() << " (" << pair.second.getCode() << ")" << endl;
-    }
-    cout << endl;
+   for (const auto& pair : cities) {
+     cout << pair.second.getCity() << " (" << pair.second.getCode() << ")" << endl;
+   }
+   cout << endl;
  
-    cout << "Choose City: ";
+   cout << "Choose City: ";
    
-    cin >> code;
+   cin >> code;
     
-    cout << "(City_code: " << code << ", Max flow: " << edmondsKarp(&g,"S",code) << ")" << endl;
-
+   double maxFlow = edmondsKarp(&g, "S", code);
+   cout << "(City_code: " << code << ", Max flow: " << maxFlow<< ")" << endl;
+   for(auto v: g.getVertexSet()){
+      if(v->getInfo() == code){
+        auto it = cities.find(v->getInfo());
+          if(it->second.getDemand() > maxFlow){
+            cout << "(City_code: " << code << ", Max flow: " << maxFlow<< ")" << endl;
+          }
+          else{
+            cout << "(City_code: " << code << ")" << "Max flow: " << it->second.getDemand() << endl;
+          }
+      }
+    }
     validChoice = true;
  }
  else if(task_choice == 2){

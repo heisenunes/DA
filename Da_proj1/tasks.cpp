@@ -3,61 +3,101 @@
 #include "Parser.h"
 
 template <class T>
-void testAndVisit(std::queue< Vertex<T>*> &q, Edge<T> *e, Vertex<T> *w, double residual) {
-// Check if the vertex 'w' is not visited and there is residual capacity
-if (! w->isVisited() && residual > 0) {
-// Mark 'w' as visited, set the path through which it was reached, and enqueue it
-  w->setVisited(true);
-  w->setPath(e);
-  q.push(w);
- }
+void testAndVisit(std::queue< Vertex<T>*> &q, Edge<T> *e, Vertex<T> *w, double residual, unordered_map<Vertex<T>*, double>* maxDelivery, unordered_map<Vertex<T>*, double>* Demand) {
+  unordered_map<string, Reservoir> reservoirs = getReservoirs("Project1DataSetSmall/Project1DataSetSmall/Reservoirs_Madeira.csv");
+  unordered_map<string, City> cities = getCities("Project1DataSetSmall/Project1DataSetSmall/Cities_Madeira.csv");
+  if(w->getInfo()[0] == 'C' && (*Demand)[w] == cities.find(w->getInfo())->second.getDemand()) {
+  }
+
+  else if(w->getInfo()[0] == 'R' && (*maxDelivery)[w] == reservoirs.find(w->getInfo())->second.get_Maximum_Delivery()) {
+  }
+  
+  // Check if the vertex 'w' is not visited and there is residual capacity
+  else if (! w->isVisited() && residual > 0) {
+    // Mark 'w' as visited, set the path through which it was reached, and enqueue it
+    w->setVisited(true);
+    w->setPath(e);
+    q.push(w);
+  }
 }
 
 // Function to find an augmenting path using Breadth-First Search
 template <class T>
-bool findAugmentingPath(Graph<T> *g, Vertex<T> *s, Vertex<T> *t) {
+bool findAugmentingPath(Graph<T> *g, Vertex<T> *s, Vertex<T> *t, unordered_map<Vertex<T>*, double>* maxDelivery, unordered_map<Vertex<T>*, double>* Demand) {
 // Mark all vertices as not visited
-   for(auto v : g->getVertexSet()) {
-     v->setVisited(false);
-   }
-   // Mark the source vertex as visited and enqueue it
-   s->setVisited(true);
-   std::queue<Vertex<T> *> q;
-   q.push(s);
-// BFS to find an augmenting path
-while( ! q.empty() && ! t->isVisited()) {
-   auto v = q.front();
-   q.pop();
+  for(auto v : g->getVertexSet()) {
+    v->setVisited(false);
+  }
+  // Mark the source vertex as visited and enqueue it
+  s->setVisited(true);
+  std::queue<Vertex<T> *> q;
+  q.push(s);
+  // BFS to find an augmenting path
+  while( ! q.empty() && ! t->isVisited()) {
+    auto v = q.front();
+    q.pop();
 
-   // Process outgoing edges
-   for(auto e: v->getAdj()) {
-     testAndVisit(q, e, e->getDest(), e->getWeight() - e->getFlow());
-   }
-  // Process incoming edges
- for(auto e: v->getIncoming()) {
-   testAndVisit(q, e, e->getOrig(), e->getFlow());
- }
-}
-// Return true if a path to the target is found, false otherwise
+    // Process outgoing edges
+    for(auto e: v->getAdj()) {
+      testAndVisit(q, e, e->getDest(), e->getWeight() - e->getFlow(), &(*maxDelivery), &(*Demand));
+    }
+    // Process incoming edges
+    for(auto e: v->getIncoming()) {
+      testAndVisit(q, e, e->getOrig(), e->getFlow(), &(*maxDelivery), &(*Demand));
+    }
+  }
+  // Return true if a path to the target is found, false otherwise
   return t->isVisited();
 }
 
 // Function to find the minimum residual capacity along the augmenting path
 template <class T>
-double findMinResidualAlongPath(Vertex<T> *s, Vertex<T> *t) {
-   double f = INF;
-   // Traverse the augmenting path to find the minimum residual capacity
-   for (auto v = t; v != s; ) {
-     auto e = v->getPath();
-     if (e->getDest() == v) {
-       f = std::min(f, e->getWeight() - e->getFlow());
-       v = e->getOrig();
-   }
-   else {
-    f = std::min(f, e->getFlow());
-    v = e->getDest();
-   }
+double findMinResidualAlongPath(Vertex<T> *s, Vertex<T> *t, unordered_map<Vertex<T>*, double>* maxDelivery, unordered_map<Vertex<T>*, double>* Demand) {
+  double f = INF;
+  unordered_map<string, Reservoir> reservoirs = getReservoirs("Project1DataSetSmall/Project1DataSetSmall/Reservoirs_Madeira.csv");
+  unordered_map<string, City> cities = getCities("Project1DataSetSmall/Project1DataSetSmall/Cities_Madeira.csv");
+  Vertex<T>* city;
+  Vertex<T>* reservoir;
+  // Traverse the augmenting path to find the minimum residual capacity
+  for (auto v = t; v != s; ) {
+    auto e = v->getPath();
+    if(v == t) {
+      city = e->getOrig();
+    }
+    if (e->getDest() == v) {
+      f = std::min(f, e->getWeight() - e->getFlow());
+      v = e->getOrig();
+      if(v == s) {
+        reservoir = e->getDest();
+      }
+    }
+    else {
+      cout << "print" << endl;
+      f = std::min(f, e->getFlow());
+      v = e->getDest();
+      if(v == s) {
+        reservoir = e->getOrig();
+      }
+    }
+    
   }
+  auto it = cities.find(city->getInfo());
+  if((*Demand)[city] + f > it->second.getDemand()) {
+    f = it->second.getDemand()- (*Demand)[city];
+  }
+
+  auto j = reservoirs.find(reservoir->getInfo());
+  if((*maxDelivery)[reservoir] + f > j->second.get_Maximum_Delivery()) {
+    f = j->second.get_Maximum_Delivery() - (*maxDelivery)[reservoir];
+  }
+
+  if(city->getInfo()[2] == '3') {
+    cout << "Flow: " << f << endl;
+  } 
+
+  (*Demand)[city] += f;
+  (*maxDelivery)[reservoir] += f;
+
  // Return the minimum residual capacity
   return f;
 }
@@ -66,27 +106,42 @@ double findMinResidualAlongPath(Vertex<T> *s, Vertex<T> *t) {
 template <class T>
 void augmentFlowAlongPath(Vertex<T> *s, Vertex<T> *t, double f) {
    // Traverse the augmenting path and update the flow values accordingly
-   for (auto v = t; v != s; ) {
-     auto e = v->getPath();
-     double flow = e->getFlow();
+  for (auto v = t; v != s; ) {
+    auto e = v->getPath();
+    double flow = e->getFlow();
     if (e->getDest() == v) {
       e->setFlow(flow + f);
       v = e->getOrig();
     }
     else {
-     e->setFlow(flow - f);
-     v = e->getDest();
+      e->setFlow(flow - f);
+      v = e->getDest();
     } 
-   }
+  }
 }
 
 // Main function implementing the Edmonds-Karp algorithm
 template <class T>
-double edmondsKarp(Graph<T> *g, std::string source, std::string target) {
+double edmondsKarp(Graph<T> *g, std::string source, std::string city) {
 
- // Find source and target vertices in the graph
+  // Find source and target vertices in the graph
   Vertex<T>* s = g->findVertex(source);
-  Vertex<T>* t = g->findVertex(target);
+  Vertex<T>* t = g->findVertex("T");
+
+
+  Vertex<T>* c = g->findVertex(city);
+
+  std::unordered_map<Vertex<T>*, double> maxDelivery;
+  std::unordered_map<Vertex<T>*, double> Demand;
+
+  for(auto v : g->getVertexSet()) {
+    if(v->getInfo()[0] == 'C') {
+      Demand[v] = 0.0;
+    }
+    else if(v->getInfo()[0] == 'R') {
+      maxDelivery[v] = 0.0;
+    }
+  }
 
   // Validate source and target vertices
   if (s == nullptr)
@@ -99,21 +154,37 @@ double edmondsKarp(Graph<T> *g, std::string source, std::string target) {
    throw std::logic_error("Invalid input, source equals target vertex");
 
 
-  double maxFlow = 0.0;
-
-// Initialize flow on all edges to 0
-for (auto v : g->getVertexSet()) {
-  for (auto e: v->getAdj()) {
-    e->setFlow(0);
+  // Initialize flow on all edges to 0
+  for (auto v : g->getVertexSet()) {
+    for (auto e: v->getAdj()) {
+      e->setFlow(0);
+    }
   }
-}
-// While there is an augmenting path, augment the flow along the path
-while( findAugmentingPath(g, s, t) ) {
-   double f = findMinResidualAlongPath(s, t);
-   augmentFlowAlongPath(s, t, f);
-   maxFlow += f;
- }
- return maxFlow;
+  while(findAugmentingPath(g, s, t, &maxDelivery, &Demand)) {
+    double f = findMinResidualAlongPath(s, t, &maxDelivery, &Demand);
+    augmentFlowAlongPath(s, t, f);
+  }
+  // While there is an augmenting path, augment the flow along the path
+
+  double maxFlow = Demand[c];
+
+  double totalFlow = 0.0;
+
+  for(auto v: g->getVertexSet()) {
+    if(v->getInfo()[0] == 'R') {
+      cout << v->getInfo() << ":" << maxDelivery[v] << endl;
+    }
+  }
+
+  for(auto v: g->getVertexSet()) {
+    if(v->getInfo()[0] == 'C') {
+      totalFlow += Demand[v];
+    }
+  }
+
+  cout << "Total flow: " << totalFlow << endl;
+
+  return maxFlow;
 }
 
 
@@ -308,5 +379,41 @@ void t3_3_part1(Graph<T> *g, std::string city){
 }
 */
 
+/*
+template <class T>
+std::vector<T> cityDfs(const T &source, Graph<T> *g) {
+  std<vector<int> res;
 
+  auto s = g->findVertex(source);
+  if (s == nullptr) {
+    return res;
+  } 
+
+  for(auto v : g->getVertexSet) {
+    v->setVisited(false);
+  }
+
+  cityDfsVisit(s, res);
+
+  return res;
+}
+
+template <class T>
+void cityDfsVisit(Vertex<T> *v, std::vector<T> &res) {
+  if(v->getInfo()[0] == 'C') {
+    v->setVisited(true);
+    res.pushback(v->getInfo());
+  }
+  else {
+    for(auto &e : v ->getAdj()) {
+      auto w = e->getDest();
+
+      if(!w->isVisited()) {
+        cityDfsVisit(w, res);
+      }
+    }
+  }
+}
+
+*/
 
