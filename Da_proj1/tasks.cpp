@@ -146,6 +146,13 @@ void t2_2(Graph<T> *g){
 //TASK T2.3
 
 /** Functions to Calculate and Display Metrics*/
+
+/**
+ * @brief Print detailed flow information for each edge in the graph.
+ * 
+ * @tparam T The datatype used for the vertices in the graph.
+ * @param g A pointer to the graph of which flow details will be printed.
+ */
 template <class T>
 void printFlowDetails(const Graph<T> *g) {
     std::cout << "Origin || Destination || Flux || Capacity" << std::endl;
@@ -163,12 +170,23 @@ void printFlowDetails(const Graph<T> *g) {
     }
 }
 
+/**
+ * @struct FlowMetrics
+ * @brief A structure to hold metrics related to flow in the network.
+ */
 struct FlowMetrics {
     double averageDifference = 0;
     double variance = 0;
     double maxDifference = 0;
 };
 
+/**
+ * @brief Calculates flow metrics for the graph.
+ * 
+ * @tparam T The datatype used for the vertices in the graph.
+ * @param g A constant pointer to the graph for which metrics are calculated.
+ * @return FlowMetrics A struct containing the calculated metrics.
+ */
 template <class T>
 FlowMetrics flowMetrics(const Graph<T>* g) {
     FlowMetrics metrics;
@@ -217,13 +235,25 @@ FlowMetrics flowMetrics(const Graph<T>* g) {
     return metrics;
 }
 
-
+/**
+ * @brief Print calculated flow metrics.
+ * 
+ * @param metrics A reference to the FlowMetrics struct containing the metrics to print.
+ */
 void printFlowMetrics(const FlowMetrics& metrics) {
     std::cout << "Average Difference: " << metrics.averageDifference << std::endl;
     std::cout << "Variance: " << metrics.variance << std::endl;
     std::cout << "Maximum Difference: " << metrics.maxDifference << std::endl;
 }
 
+/**
+ * @brief Check for any improvement in flow metrics.
+ * 
+ * @param beforeMetrics The flow metrics before the rebalance algorithm.
+ * @param afterMetrics The flow metrics after the rebalance algorithm.
+ * @return true If any of the metrics have improved after the rebalance algorithm.
+ * @return false If no improvement is found in the metrics after the rebalance algorithm.
+ */
 bool checkMetricImprovement(const FlowMetrics& beforeMetrics, const FlowMetrics& afterMetrics){
 
     if (afterMetrics.averageDifference < beforeMetrics.averageDifference ||
@@ -239,6 +269,18 @@ bool checkMetricImprovement(const FlowMetrics& beforeMetrics, const FlowMetrics&
 
 /** Path finding functions**/
 
+/**
+ * @brief Performs a depth-first search (DFS) to find all paths from a source vertex to a destination vertex.
+ * 
+ * This recursive function explores all possible paths from 'current' to 'dest'. It considers only edges with available capacity.
+ * The paths are stored in a vector of vectors, where each vector represents a path consisting of edges.
+ * 
+ * @tparam T The data type used for vertex identifiers.
+ * @param current The current vertex identifier in the DFS.
+ * @param dest The destination vertex to find a path for.
+ * @param path A reference to the current path being explored.
+ * @param paths A reference to the vector of vectors, where all found paths will be stored.
+ */
 template <class T>
 void Graph<T>::dfs_target(const T& current, const T& dest, std::vector<Edge<T>*>& path, std::vector<std::vector<Edge<T>*> >& paths) {
     Vertex<T>* source = findVertex(current);
@@ -259,6 +301,17 @@ void Graph<T>::dfs_target(const T& current, const T& dest, std::vector<Edge<T>*>
     }
 }
 
+/**
+ * @brief Finds all paths from a source to a destination vertex using Depth First Search (DFS).
+ * 
+ * This function initializes the path-finding process by resetting the visited status of all vertices.
+ * It then calls the recursive 'dfs_target' to explore all paths between source and dest.
+ * 
+ * @tparam T The data type used for vertex identifiers.
+ * @param source The identifier of the source vertex where paths begin.
+ * @param dest The identifier of the destination vertex where paths end.
+ * @return A vector of vectors, with each inner vector representing a path from source to dest.
+ */
 template <class T>
 std::vector<std::vector<Edge<T>*> > Graph<T>::getPaths(const T& source, const T& dest) {
     std::vector<std::vector<Edge<T>*> > paths;
@@ -277,7 +330,17 @@ std::vector<std::vector<Edge<T>*> > Graph<T>::getPaths(const T& source, const T&
 
 /****/
 
-/** Helper functions to print paths**/
+/** Helper functions to print paths **/
+
+/**
+ * @brief Prints a single path represented by a vector of edges.
+ * 
+ * This function iterates through the given path vector and prints information
+ * about each edge, including origin, destination, flow, and capacity.
+ * 
+ * @tparam T The data type used for the vertices in the graph.
+ * @param path A constant reference to a vector of edges that represents a path.
+ */
 template <class T>
 void printPath(const std::vector<Edge<T>*>& path) {
     for (size_t i = 0; i < path.size(); ++i) {
@@ -291,6 +354,17 @@ void printPath(const std::vector<Edge<T>*>& path) {
     std::cout << std::endl;
 }
 
+/**
+ * @brief Prints all the paths contained in a vector of path vectors.
+ * 
+ * If there are no paths found, it prints a "No paths found." message
+ * If there are paths, it prints the number of paths and iterates through the list of paths,
+ * calling the printPath function for each one in order to print them.
+ * 
+ * @tparam T The data type used for the vertices in the graph.
+ * @param paths A constant reference to a vector containing vectors of edges, 
+ *              where each inner vector represents a different path.
+ */
 template <class T>
 void printAllPaths(const std::vector<std::vector<Edge<T>*> >& paths) {
     if (paths.empty()) {
@@ -307,10 +381,23 @@ void printAllPaths(const std::vector<std::vector<Edge<T>*> >& paths) {
 /** **/
 
 /** Balance Flow **/
-//sort edges based on their capacity to flow ratio or by flow if equal
+/**
+ * @class EdgeComparator
+ * @brief Comparator class to sort edges based on their capacity to flow ratio or by flow if the ratio is equal.
+ *
+ */
 template <class T>
 class EdgeComparator {
 public:
+    /**
+     * @brief Compares two edges for sorting purposes.
+     *
+     * @param a Pointer to the first edge.
+     * @param b Pointer to the second edge.
+     * @return true If the first edge has a lower capacity to flow ratio than the second edge or,
+     *         if the ratios are equal, true if the first edge has a greater flow.
+     * @return false Otherwise.
+     */
     bool operator()(const Edge<T>* a, const Edge<T>* b) const {
         double differenceA = (a->getWeight() - a->getFlow()) / a->getWeight();
         double differenceB = (b->getWeight() - b->getFlow()) / b->getWeight();
@@ -318,6 +405,16 @@ public:
     }
 };
 
+/**
+ * @brief Attempts to rebalance the flow in a graph to improve network efficiency.
+ *
+ * This function iterates through all edges in the graph, trying to find alternative paths
+ * for edges with flow, to balance the network flow based on a specified metric. The process
+ * continues until the number of iterations is equal to the number of edges or no further improvements can be made.
+ *
+ * @tparam T The data type used for the vertices in the graph.
+ * @param g A pointer to the graph to rebalance.
+ */
 template <class T>
 void rebalanceFlow(Graph<T> *g){
 
@@ -406,6 +503,19 @@ void rebalanceFlow(Graph<T> *g){
 
 /** **/
 
+/**
+ * @brief Function to execute Task 2.3. It takes the maximum flow as calculated in task 2.1, and then tries to rebalance the flow in the graph.
+ *
+ * This function finds the maximum flow using the Edmonds-Karp algorithm and after that it calls the rebalanceFlow function to improve
+ * the balance of the flow across the network. It outputs
+ * the flow metrics before and after rebalancing as well as printing the maximum flow of the graph.
+ *
+ * @tparam T The data type used for the vertices in the graph.
+ * @param g A pointer to the graph where the flow is to be calculated and rebalanced.
+ * @param source A string representing the identifier of the source vertex.
+ * @param target A string representing the identifier of the target vertex.
+ * @return The value of the maximum flow from source to target before rebalancing.
+ */
 template <class T>
 double t2_3(Graph<T> *g, std::string source, std::string target) {
 
