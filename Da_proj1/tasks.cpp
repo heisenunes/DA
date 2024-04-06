@@ -588,11 +588,26 @@ void rebalanceFlow(Graph<T> *g){
  * @return The value of the maximum flow from source to target before rebalancing.
  */
 template <class T>
-double t2_3(Graph<T> *g, std::string source, std::string target) {
+double t2_3(Graph<T> *g, std::string source, std::string city) {
 
  // Find source and target vertices in the graph
   Vertex<T>* s = g->findVertex(source);
-  Vertex<T>* t = g->findVertex(target);
+  Vertex<T>* t = g->findVertex("T");
+
+
+  Vertex<T>* c = g->findVertex(city);
+
+  std::unordered_map<Vertex<T>*, double> maxDelivery;
+  std::unordered_map<Vertex<T>*, double> Demand;
+
+  for(auto v : g->getVertexSet()) {
+    if(v->getInfo()[0] == 'C') {
+      Demand[v] = 0.0;
+    }
+    else if(v->getInfo()[0] == 'R') {
+      maxDelivery[v] = 0.0;
+    }
+  }
 
   // Validate source and target vertices
   if (s == nullptr)
@@ -605,19 +620,32 @@ double t2_3(Graph<T> *g, std::string source, std::string target) {
    throw std::logic_error("Invalid input, source equals target vertex");
 
 
-  double maxFlow = 0.0;
-
   // Initialize flow on all edges to 0
   for (auto v : g->getVertexSet()) {
     for (auto e: v->getAdj()) {
       e->setFlow(0);
     }
   }
-  // While there is an augmenting path, augment the flow along the path
-  while( findAugmentingPath(g, s, t) ) {
-    double f = findMinResidualAlongPath(s, t);
+  while(findAugmentingPath(g, s, t, &maxDelivery, &Demand)) {
+    double f = findMinResidualAlongPath(s, t, &maxDelivery, &Demand);
     augmentFlowAlongPath(s, t, f);
-    maxFlow += f;
+  }
+  // While there is an augmenting path, augment the flow along the path
+
+  double maxFlow = Demand[c];
+
+  double totalFlow = 0.0;
+
+  for(auto v: g->getVertexSet()) {
+    if(v->getInfo()[0] == 'R') {
+      cout << v->getInfo() << ":" << maxDelivery[v] << endl;
+    }
+  }
+
+  for(auto v: g->getVertexSet()) {
+    if(v->getInfo()[0] == 'C') {
+      totalFlow += Demand[v];
+    }
   }
 
   cout << "BEFORE BALANCING:" << endl;
