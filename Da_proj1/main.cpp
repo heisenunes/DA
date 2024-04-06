@@ -27,6 +27,7 @@ while(!validChoice){
  cout << "Task to choose: " << endl;
  cout << "T2.1 (1)" << endl;
  cout << "T2.2 (2)" << endl;
+ cout << "T2.3 (3)" << endl;
  cout << "T3.1 (4)" << endl;
  cout << "T3.2 (5)" << endl;
  cout << "Choice: ";
@@ -68,6 +69,17 @@ while(!validChoice){
  else if(task_choice == 2){
    
    t2_2(&g);
+     
+   validChoice = true;
+ }
+  else if(task_choice == 3){
+   
+    cout << "Choose City: ";
+    string code;
+    cin >> code;
+    
+    t2_3(&g,"S",code);
+  
      
    validChoice = true;
  }

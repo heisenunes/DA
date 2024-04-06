@@ -125,7 +125,10 @@ public:
     std:: vector<T> dfs() const;
     std:: vector<T> dfs(const T & source) const;
     void dfsVisit(Vertex<T> *v,  std::vector<T> & res) const;
+    std::vector<std::vector<Edge<T>*> > getPaths(const T& source, const T& dest);
     std::vector<T> bfs(const T & source) const;
+
+    void dfs_target(const T& current, const T& dest, std::vector<Edge<T>*>& path, std::vector<std::vector<Edge<T>*> >& paths);
 
     bool isDAG() const;
     bool dfsIsDAG(Vertex<T> *v) const;

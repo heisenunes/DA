@@ -214,6 +214,430 @@ void t2_2(Graph<T> *g){
   
 }
 
+//TASK T2.3
+
+/** Functions to Calculate and Display Metrics*/
+
+/**
+ * @brief Print detailed flow information for each edge in the graph.
+ * 
+ * @tparam T The datatype used for the vertices in the graph.
+ * @param g A pointer to the graph of which flow details will be printed.
+ */
+template <class T>
+void printFlowDetails(const Graph<T> *g) {
+    std::cout << "Origin || Destination || Flux || Capacity" << std::endl;
+
+    for (auto& vertex : g->getVertexSet()) {
+        for (auto& edge : vertex->getAdj()) { 
+            //exclude unused edges and super source for readability
+            if(edge->getFlow()> 0 && edge->getOrig()->getInfo() != "S" ){
+              std::cout << edge->getOrig()->getInfo() << " || " 
+                        << edge->getDest()->getInfo() << " || " 
+                        << edge->getFlow() << " || "
+                        << edge->getWeight() << std::endl;
+                        }
+                      }
+    }
+}
+
+/**
+ * @struct FlowMetrics
+ * @brief A structure to hold metrics related to flow in the network.
+ */
+struct FlowMetrics {
+    double averageDifference = 0;
+    double variance = 0;
+    double maxDifference = 0;
+};
+
+/**
+ * @brief Calculates flow metrics for the graph.
+ * 
+ * @tparam T The datatype used for the vertices in the graph.
+ * @param g A constant pointer to the graph for which metrics are calculated.
+ * @return FlowMetrics A struct containing the calculated metrics.
+ */
+template <class T>
+FlowMetrics flowMetrics(const Graph<T>* g) {
+    FlowMetrics metrics;
+    double totalDifference = 0;
+    int count = 0;
+
+    //average difference between Capacity and Flow
+    for (auto& vertex : g->getVertexSet()) {
+        for (auto& edge : vertex->getAdj()) {
+            if (edge->getOrig()->getInfo() != "S") {
+                totalDifference += (edge->getWeight() - edge->getFlow());
+                ++count;
+            }
+        }
+    }
+
+    if (count > 0) {
+        metrics.averageDifference = totalDifference / count;
+    }
+
+    //variance of difference between Capacity and Flow
+    if (count > 1) {
+        for (auto& vertex : g->getVertexSet()) {
+            for (auto& edge : vertex->getAdj()) {
+                if (edge->getOrig()->getInfo() != "S") {
+                    double difference = (edge->getWeight() - edge->getFlow());
+                    metrics.variance += pow(difference - metrics.averageDifference, 2);
+                }
+            }
+        }
+        metrics.variance /= (count - 1);
+    }
+
+    //maximum difference between Capacity and Flow
+    for (auto& vertex : g->getVertexSet()) {
+        for (auto& edge : vertex->getAdj()) {
+            if (edge->getOrig()->getInfo() != "S") {
+                double difference = (edge->getWeight() - edge->getFlow());
+                if (difference > metrics.maxDifference) {
+                    metrics.maxDifference = difference;
+                }
+            }
+        }
+    }
+
+    return metrics;
+}
+
+/**
+ * @brief Print calculated flow metrics.
+ * 
+ * @param metrics A reference to the FlowMetrics struct containing the metrics to print.
+ */
+void printFlowMetrics(const FlowMetrics& metrics) {
+    std::cout << "Average Difference: " << metrics.averageDifference << std::endl;
+    std::cout << "Variance: " << metrics.variance << std::endl;
+    std::cout << "Maximum Difference: " << metrics.maxDifference << std::endl;
+}
+
+/**
+ * @brief Check for any improvement in flow metrics.
+ * 
+ * @param beforeMetrics The flow metrics before the rebalance algorithm.
+ * @param afterMetrics The flow metrics after the rebalance algorithm.
+ * @return true If any of the metrics have improved after the rebalance algorithm.
+ * @return false If no improvement is found in the metrics after the rebalance algorithm.
+ */
+bool checkMetricImprovement(const FlowMetrics& beforeMetrics, const FlowMetrics& afterMetrics){
+
+    if (afterMetrics.averageDifference < beforeMetrics.averageDifference ||
+        afterMetrics.variance < beforeMetrics.variance ||
+        afterMetrics.maxDifference < beforeMetrics.maxDifference) {
+        return true; 
+        //if any of the metrics have improved, return true
+    }
+    return false; //no improvement in the metrics  
+}
+/** **/
+
+
+/** Path finding functions**/
+
+/**
+ * @brief Performs a depth-first search (DFS) to find all paths from a source vertex to a destination vertex.
+ * 
+ * This recursive function explores all possible paths from 'current' to 'dest'. It considers only edges with available capacity.
+ * The paths are stored in a vector of vectors, where each vector represents a path consisting of edges.
+ * 
+ * @tparam T The data type used for vertex identifiers.
+ * @param current The current vertex identifier in the DFS.
+ * @param dest The destination vertex to find a path for.
+ * @param path A reference to the current path being explored.
+ * @param paths A reference to the vector of vectors, where all found paths will be stored.
+ */
+template <class T>
+void Graph<T>::dfs_target(const T& current, const T& dest, std::vector<Edge<T>*>& path, std::vector<std::vector<Edge<T>*> >& paths) {
+    Vertex<T>* source = findVertex(current);
+    source->setVisited(true);
+
+    if(current == dest) {
+        paths.push_back(path);
+    }
+    else {
+        for(auto e : source->getAdj()) {
+            Vertex<T>* u = e->getDest();
+            if(!u->isVisited() && e->getWeight() - e->getFlow() > 0) {
+                path.push_back(e);
+                dfs_target(u->getInfo(), dest, path, paths);
+                path.pop_back();
+            }
+        }
+    }
+}
+
+/**
+ * @brief Finds all paths from a source to a destination vertex using Depth First Search (DFS).
+ * 
+ * This function initializes the path-finding process by resetting the visited status of all vertices.
+ * It then calls the recursive 'dfs_target' to explore all paths between source and dest.
+ * 
+ * @tparam T The data type used for vertex identifiers.
+ * @param source The identifier of the source vertex where paths begin.
+ * @param dest The identifier of the destination vertex where paths end.
+ * @return A vector of vectors, with each inner vector representing a path from source to dest.
+ */
+template <class T>
+std::vector<std::vector<Edge<T>*> > Graph<T>::getPaths(const T& source, const T& dest) {
+    std::vector<std::vector<Edge<T>*> > paths;
+    std::vector<Edge<T>*> path;
+
+    //set all visited status to false
+    for(auto v : vertexSet) {
+        //std::cout << v->getInfo() << endl;
+        v->setVisited(false);
+    }
+  
+    dfs_target(source, dest, path, paths); //find a path between source and destination with dfs
+
+    return paths;
+}
+
+/****/
+
+/** Helper functions to print paths **/
+
+/**
+ * @brief Prints a single path represented by a vector of edges.
+ * 
+ * This function iterates through the given path vector and prints information
+ * about each edge, including origin, destination, flow, and capacity.
+ * 
+ * @tparam T The data type used for the vertices in the graph.
+ * @param path A constant reference to a vector of edges that represents a path.
+ */
+template <class T>
+void printPath(const std::vector<Edge<T>*>& path) {
+    for (size_t i = 0; i < path.size(); ++i) {
+        auto edge = path[i];
+        std::cout << edge->getOrig()->getInfo() << " -> " 
+                  << edge->getDest()->getInfo() 
+                  << " | Flow: " << edge->getFlow() 
+                  << " | Capacity: " << edge->getWeight();
+        if (i < path.size() - 1) std::cout << " -> ";
+    }
+    std::cout << std::endl;
+}
+
+/**
+ * @brief Prints all the paths contained in a vector of path vectors.
+ * 
+ * If there are no paths found, it prints a "No paths found." message
+ * If there are paths, it prints the number of paths and iterates through the list of paths,
+ * calling the printPath function for each one in order to print them.
+ * 
+ * @tparam T The data type used for the vertices in the graph.
+ * @param paths A constant reference to a vector containing vectors of edges, 
+ *              where each inner vector represents a different path.
+ */
+template <class T>
+void printAllPaths(const std::vector<std::vector<Edge<T>*> >& paths) {
+    if (paths.empty()) {
+        std::cout << "No paths found." << std::endl;
+        return;
+    }
+
+    std::cout << "Found " << paths.size() << " paths:" << std::endl;
+    for (const auto& path : paths) {
+       printPath(path);
+    }
+}
+
+/** **/
+
+/** Balance Flow **/
+/**
+ * @class EdgeComparator
+ * @brief Comparator class to sort edges based on their capacity to flow ratio or by flow if the ratio is equal.
+ *
+ */
+template <class T>
+class EdgeComparator {
+public:
+    /**
+     * @brief Compares two edges for sorting purposes.
+     *
+     * @param a Pointer to the first edge.
+     * @param b Pointer to the second edge.
+     * @return true If the first edge has a lower capacity to flow ratio than the second edge or,
+     *         if the ratios are equal, true if the first edge has a greater flow.
+     * @return false Otherwise.
+     */
+    bool operator()(const Edge<T>* a, const Edge<T>* b) const {
+        double differenceA = (a->getWeight() - a->getFlow()) / a->getWeight();
+        double differenceB = (b->getWeight() - b->getFlow()) / b->getWeight();
+        return differenceA == differenceB ? a->getFlow() > b->getFlow() : differenceA < differenceB;
+    }
+};
+
+/**
+ * @brief Attempts to rebalance the flow in a graph to improve network efficiency.
+ *
+ * This function iterates through all edges in the graph, trying to find alternative paths
+ * for edges with flow, to balance the network flow based on a specified metric. The process
+ * continues until the number of iterations is equal to the number of edges or no further improvements can be made.
+ *
+ * @tparam T The data type used for the vertices in the graph.
+ * @param g A pointer to the graph to rebalance.
+ */
+template <class T>
+void rebalanceFlow(Graph<T> *g){
+
+  Graph<T> gOriginal = *g;
+
+  FlowMetrics beforeMetrics = flowMetrics(g);
+  FlowMetrics afterMetrics = flowMetrics (g);
+
+
+  std::vector<Edge<T>*> pipes;
+
+      for (auto v : g->getVertexSet()) {
+          for (auto e : v->getAdj()) {
+              pipes.push_back(e);
+          }
+      }
+
+  bool continueBalancing = true;
+  int improvementMade = 0;
+  int count = 0;
+  
+  while (continueBalancing) {
+    
+    std::sort(pipes.begin(), pipes.end(), EdgeComparator<T>());
+
+    for (Edge<T>* edge : pipes) {
+      if (edge->getFlow() == 0) {break;}
+
+      auto paths = g->getPaths(edge->getOrig()->getInfo(), edge->getDest()->getInfo());
+      if (paths.empty()) {
+        //std::cout << "NO PATH FOUND!" << endl; 
+        continue;}
+
+        double maxDiff = -1;
+        std::vector<Edge<T>*> bestPath;
+
+        for (auto& p : paths) {
+          double minDiff = std::numeric_limits<double>::max();
+          for (Edge<T>* e : p) {
+            double spareCapacity = e->getWeight() - e->getFlow();
+            minDiff = std::min(minDiff, spareCapacity);
+          }
+            if (minDiff > maxDiff) {
+              maxDiff = minDiff;
+              bestPath = p;
+            }
+        }
+
+        double flowToRedirect = std::min(maxDiff, edge->getFlow());
+        edge->setFlow(edge->getFlow() - flowToRedirect);
+        for (Edge<T>* e : bestPath) {
+          e->setFlow(e->getFlow() + flowToRedirect);
+        }
+    }
+
+    //update metrics
+    afterMetrics = flowMetrics(g);
+
+    //check if we need/can iterate
+    continueBalancing = checkMetricImprovement(beforeMetrics, afterMetrics) && count < pipes.size();
+    if (continueBalancing){improvementMade ++;};
+
+    //printFlowMetrics(beforeMetrics);
+    beforeMetrics = afterMetrics;
+    count++;
+
+  }
+
+
+   if (improvementMade > 0){
+      cout << "Network balance was Improved " << endl;
+      printFlowMetrics(afterMetrics);
+    }
+
+    if (improvementMade == 0){
+      cout << "No improvement to the network is possible" << endl;
+    }
+  //printFlowDetails(&gOriginal);
+  //beforeMetrics = flowMetrics(&gOriginal);
+  //printFlowMetrics(beforeMetrics);
+  
+  //printFlowDetails(g);
+  //printFlowMetrics(afterMetrics);
+  //cout << "Count: " << count << endl;
+}
+
+/** **/
+
+/**
+ * @brief Function to execute Task 2.3. It takes the maximum flow as calculated in task 2.1, and then tries to rebalance the flow in the graph.
+ *
+ * This function finds the maximum flow using the Edmonds-Karp algorithm and after that it calls the rebalanceFlow function to improve
+ * the balance of the flow across the network. It outputs
+ * the flow metrics before and after rebalancing as well as printing the maximum flow of the graph.
+ *
+ * @tparam T The data type used for the vertices in the graph.
+ * @param g A pointer to the graph where the flow is to be calculated and rebalanced.
+ * @param source A string representing the identifier of the source vertex.
+ * @param target A string representing the identifier of the target vertex.
+ * @return The value of the maximum flow from source to target before rebalancing.
+ */
+template <class T>
+double t2_3(Graph<T> *g, std::string source, std::string target) {
+
+ // Find source and target vertices in the graph
+  Vertex<T>* s = g->findVertex(source);
+  Vertex<T>* t = g->findVertex(target);
+
+  // Validate source and target vertices
+  if (s == nullptr)
+   throw std::logic_error("Invalid source vertex");
+
+  if(t == nullptr)
+   throw std::logic_error("Invalid target vertex");
+
+  if(s == t)
+   throw std::logic_error("Invalid input, source equals target vertex");
+
+
+  double maxFlow = 0.0;
+
+  // Initialize flow on all edges to 0
+  for (auto v : g->getVertexSet()) {
+    for (auto e: v->getAdj()) {
+      e->setFlow(0);
+    }
+  }
+  // While there is an augmenting path, augment the flow along the path
+  while( findAugmentingPath(g, s, t) ) {
+    double f = findMinResidualAlongPath(s, t);
+    augmentFlowAlongPath(s, t, f);
+    maxFlow += f;
+  }
+
+  cout << "BEFORE BALANCING:" << endl;
+
+  FlowMetrics beforeMetrics = flowMetrics(g);
+  //printFlowDetails(g);
+  printFlowMetrics(beforeMetrics);
+  
+  //auto paths = g->getPaths("R_7", "C_20");
+  //auto paths = g->getPaths("PS_51", "C_10");
+  //auto paths = g->getPaths("PS_51", "C_16");
+  //auto paths = g->getPaths("PS_70", "C_10");
+  //printAllPaths(paths);
+  cout << "AFTER BALANCING:" << endl;
+  rebalanceFlow(g);
+
+  return maxFlow;
+}
+
+
 template<class T>
 void t3_1(Graph<T> *g, std::string reservoir) {
   unordered_map<string,City> cities;
