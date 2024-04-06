@@ -499,12 +499,15 @@ template <class T>
 void Graph<T>::dfsVisit(Vertex<T> *v, std::vector<T> & res) const {
     v->setVisited(true);
     res.push_back(v->getInfo());
+   
     for (auto & e : v->getAdj()) {
         auto w = e->getDest();
+
         if (!w->isVisited()) {
             dfsVisit(w, res);
         }
     }
+  
 }
 
 /****************** BFS ********************/

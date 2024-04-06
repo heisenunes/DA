@@ -14,7 +14,12 @@ int main(){
     cout << "-------------------------------" << endl;
 
 
-Graph<string> g = construct_graph("Project1LargeDataSet/Project1LargeDataSet/Pipes.csv");
+Graph<string> g = construct_graph("Project1DataSetSmall/Project1DataSetSmall/Pipes_Madeira.csv");
+
+unordered_map<string, Reservoir> reservoirs = getReservoirs("Project1DataSetSmall/Project1DataSetSmall/Reservoirs_Madeira.csv");
+unordered_map<string, Station> stations = getStations("Project1DataSetSmall/Project1DataSetSmall/Stations_Madeira.csv");
+unordered_map<string, City> cities = getCities("Project1DataSetSmall/Project1DataSetSmall/Cities_Madeira.csv");
+
 
 bool validChoice = false;
 
@@ -23,6 +28,8 @@ while(!validChoice){
  cout << "T2.1 (1)" << endl;
  cout << "T2.2 (2)" << endl;
  cout << "T2.3 (3)" << endl;
+ cout << "T3.1 (4)" << endl;
+ cout << "T3.2 (5)" << endl;
  cout << "Choice: ";
 
  int task_choice;
@@ -30,39 +37,33 @@ while(!validChoice){
  
  cout << endl;
  cout << endl;
+
+ string code;
+
  if(task_choice == 1){
 
-    cout << endl;
-    cout << "Alcacer do Sal(C_1)" << endl;
-    cout << "Aveiro(C_2)" << endl;
-    cout << "Beja(C_3)" << endl;
-    cout << "Braga(C_4)" << endl;
-    cout << "Bragança(C_5)" << endl;
-    cout << "Castelo Branco(C_6)" << endl;
-    cout << "Coimbra(C_7)" << endl;
-    cout << "Covilhã(C_8)" << endl;
-    cout << "Estremoz(C_9)" << endl;
-    cout << "Évora(C_10)" << endl;
-    cout << "Faro(C_11)" << endl;
-    cout << "Guarda(C_12)" << endl;
-    cout << "Lagos(C_13)" << endl;
-
-    cout << "Leiria(C_14)" << endl;
-    cout << "Lisboa(C_15)" << endl;
-    cout << "Portalegre(C_16)" << endl;
-    cout << "Porto(C_17)" << endl;
-    cout << "Santarém(C_18)" << endl;
-    cout << "Setúbal(C_19)" << endl;
-    cout << "Viana do Castelo(C_20)" << endl;
-    cout << "Vila Real(C_21)" << endl;
-    cout << "Viseu(C_22)" << endl;
+   for (const auto& pair : cities) {
+     cout << pair.second.getCity() << " (" << pair.second.getCode() << ")" << endl;
+   }
+   cout << endl;
+ 
+   cout << "Choose City: ";
+   
+   cin >> code;
     
-    cout << "Choose City: ";
-    string code;
-    cin >> code;
-    
-    cout << "(City_code: " << code << ", Max flow: " << edmondsKarp(&g,"S",code) << ")" << endl;
-
+   double maxFlow = edmondsKarp(&g, "S", code);
+   cout << "(City_code: " << code << ", Max flow: " << maxFlow<< ")" << endl;
+   for(auto v: g.getVertexSet()){
+      if(v->getInfo() == code){
+        auto it = cities.find(v->getInfo());
+          if(it->second.getDemand() > maxFlow){
+            cout << "(City_code: " << code << ", Max flow: " << maxFlow<< ")" << endl;
+          }
+          else{
+            cout << "(City_code: " << code << ")" << "Max flow: " << it->second.getDemand() << endl;
+          }
+      }
+    }
     validChoice = true;
  }
  else if(task_choice == 2){
@@ -82,6 +83,32 @@ while(!validChoice){
      
    validChoice = true;
  }
+  else if(task_choice == 4) {
+   
+    for (const auto& pair : reservoirs) {
+      cout << pair.second.get_reservoir() << " (" << pair.second.getCode() << ")" << endl;
+    }
+    cout << endl;
+    cout << "Choose the reservoir to be removed:" << endl;
+    cin >> code;
+
+    t3_1(&g, code);
+
+    validChoice = true;
+  }
+  else if(task_choice == 5) {
+    
+    for (const auto& pair : stations) {
+      cout << pair.second.getCode() << " (" << pair.second.getCode() << ")" << endl;
+    }
+    cout << endl;
+    cout << "Choose the station to be removed:" << endl;
+    cin >> code;
+
+    t3_2(&g, code);
+
+    validChoice = true;
+  }
  else{
     cout << endl;
     cout << "Invalid Choice. Please try again!" << endl;
