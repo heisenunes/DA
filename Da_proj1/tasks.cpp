@@ -267,7 +267,7 @@ FlowMetrics flowMetrics(const Graph<T>* g) {
     //average difference between Capacity and Flow
     for (auto& vertex : g->getVertexSet()) {
         for (auto& edge : vertex->getAdj()) {
-            if (edge->getOrig()->getInfo() != "S") {
+            if (edge->getOrig()->getInfo() != "S" && edge->getDest()->getInfo() != "T") {
                 totalDifference += (edge->getWeight() - edge->getFlow());
                 ++count;
             }
@@ -282,7 +282,7 @@ FlowMetrics flowMetrics(const Graph<T>* g) {
     if (count > 1) {
         for (auto& vertex : g->getVertexSet()) {
             for (auto& edge : vertex->getAdj()) {
-                if (edge->getOrig()->getInfo() != "S") {
+                if (edge->getOrig()->getInfo() != "S" && edge->getDest()->getInfo() != "T") {
                     double difference = (edge->getWeight() - edge->getFlow());
                     metrics.variance += pow(difference - metrics.averageDifference, 2);
                 }
@@ -294,7 +294,7 @@ FlowMetrics flowMetrics(const Graph<T>* g) {
     //maximum difference between Capacity and Flow
     for (auto& vertex : g->getVertexSet()) {
         for (auto& edge : vertex->getAdj()) {
-            if (edge->getOrig()->getInfo() != "S") {
+            if (edge->getOrig()->getInfo() != "S" && edge->getDest()->getInfo() != "T") {
                 double difference = (edge->getWeight() - edge->getFlow());
                 if (difference > metrics.maxDifference) {
                     metrics.maxDifference = difference;
