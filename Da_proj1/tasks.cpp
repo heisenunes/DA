@@ -221,7 +221,6 @@ void t2_2(Graph<T> *g){
 /**
  * @brief Print detailed flow information for each edge in the graph.
  * 
- * @tparam T The datatype used for the vertices in the graph.
  * @param g A pointer to the graph of which flow details will be printed.
  */
 template <class T>
@@ -254,7 +253,6 @@ struct FlowMetrics {
 /**
  * @brief Calculates flow metrics for the graph.
  * 
- * @tparam T The datatype used for the vertices in the graph.
  * @param g A constant pointer to the graph for which metrics are calculated.
  * @return FlowMetrics A struct containing the calculated metrics.
  */
@@ -346,7 +344,6 @@ bool checkMetricImprovement(const FlowMetrics& beforeMetrics, const FlowMetrics&
  * This recursive function explores all possible paths from 'current' to 'dest'. It considers only edges with available capacity.
  * The paths are stored in a vector of vectors, where each vector represents a path consisting of edges.
  * 
- * @tparam T The data type used for vertex identifiers.
  * @param current The current vertex identifier in the DFS.
  * @param dest The destination vertex to find a path for.
  * @param path A reference to the current path being explored.
@@ -378,7 +375,6 @@ void Graph<T>::dfs_target(const T& current, const T& dest, std::vector<Edge<T>*>
  * This function initializes the path-finding process by resetting the visited status of all vertices.
  * It then calls the recursive 'dfs_target' to explore all paths between source and dest.
  * 
- * @tparam T The data type used for vertex identifiers.
  * @param source The identifier of the source vertex where paths begin.
  * @param dest The identifier of the destination vertex where paths end.
  * @return A vector of vectors, with each inner vector representing a path from source to dest.
@@ -409,7 +405,6 @@ std::vector<std::vector<Edge<T>*> > Graph<T>::getPaths(const T& source, const T&
  * This function iterates through the given path vector and prints information
  * about each edge, including origin, destination, flow, and capacity.
  * 
- * @tparam T The data type used for the vertices in the graph.
  * @param path A constant reference to a vector of edges that represents a path.
  */
 template <class T>
@@ -432,7 +427,6 @@ void printPath(const std::vector<Edge<T>*>& path) {
  * If there are paths, it prints the number of paths and iterates through the list of paths,
  * calling the printPath function for each one in order to print them.
  * 
- * @tparam T The data type used for the vertices in the graph.
  * @param paths A constant reference to a vector containing vectors of edges, 
  *              where each inner vector represents a different path.
  */
@@ -480,10 +474,9 @@ public:
  * @brief Attempts to rebalance the flow in a graph to improve network efficiency.
  *
  * This function iterates through all edges in the graph, trying to find alternative paths
- * for edges with flow, to balance the network flow based on a specified metric. The process
+ * for edges with low flow to capacity ratio,  in order to balance the network flow and improve calculated metrics. The process
  * continues until the number of iterations is equal to the number of edges or no further improvements can be made.
  *
- * @tparam T The data type used for the vertices in the graph.
  * @param g A pointer to the graph to rebalance.
  */
 template <class T>
@@ -581,7 +574,6 @@ void rebalanceFlow(Graph<T> *g){
  * the balance of the flow across the network. It outputs
  * the flow metrics before and after rebalancing as well as printing the maximum flow of the graph.
  *
- * @tparam T The data type used for the vertices in the graph.
  * @param g A pointer to the graph where the flow is to be calculated and rebalanced.
  * @param source A string representing the identifier of the source vertex.
  * @param target A string representing the identifier of the target vertex.
