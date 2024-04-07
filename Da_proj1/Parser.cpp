@@ -7,11 +7,25 @@
 #include <unordered_map>
 #include "Station.h"
 #include "Reservoir.h"
+#include "Pipe.h"
 #include "data_structures/Graph.h"
+
 
 using namespace std;
 
-const int INFINITY_INT = std::numeric_limits<int>::max(); 
+const int INFINITY_INT = std::numeric_limits<int>::max();
+
+/**
+ * @brief Parses a CSV file containing city data and returns an unordered map of cities.
+ *  
+ * @param filename The name of the CSV file to read city data from.
+ * @return An unordered map with city codes as keys and corresponding City objects as values.
+ *         If the file cannot be opened or read, an empty unordered map is returned.
+ * 
+ * @note The CSV file is expected to have the following format:
+ *       "city_name,id,code,demand,population"
+ *       Each field is separated by a comma.
+ */
 
 unordered_map <string,City> getCities(const string &filename){
 
@@ -50,6 +64,18 @@ unordered_map <string,City> getCities(const string &filename){
     return CityMap;
 }
 
+/**
+ * @brief Parses a CSV file containing station data and returns an unordered map of stations.
+ *  
+ * @param filename The name of the CSV file to read station data from.
+ * @return An unordered map with station codes as keys and corresponding Station objects as values.
+ *         If the file cannot be opened or read, an empty unordered map is returned.
+ * 
+ * @note The CSV file is expected to have the following format:
+ *       "id,Code"
+ *       Each field is separated by a comma.
+ */
+
 unordered_map<string,Station> getStations(const string &filename){
 
     unordered_map<string,Station> StationMap;
@@ -87,6 +113,18 @@ unordered_map<string,Station> getStations(const string &filename){
     return StationMap;
 
 }
+
+/**
+ * @brief Parses a CSV file containing water reservation data and returns an unordered map of water reservations.
+ *  
+ * @param filename The name of the CSV file to read water reservation data from.
+ * @return An unordered map with water reservation codes as keys and corresponding Water reservations objects as values.
+ *         If the file cannot be opened or read, an empty unordered map is returned.
+ * 
+ * @note The CSV file is expected to have the following format:
+ *       "reservoir_name,municipality,id,code,maximum_delivery"
+ *       Each field is separated by a comma.
+ */
 
 unordered_map<string,Reservoir> getReservoirs(const string &filename){
 
@@ -127,6 +165,86 @@ unordered_map<string,Reservoir> getReservoirs(const string &filename){
     return ReservoirMap;
 
 }
+
+/**
+ * @brief Parses a CSV file containing pipes data and returns an unordered map of pipes.
+ *  
+ * @param filename The name of the CSV file to read pipe data from.
+ * @return An unordered map with pipes ids as keys and corresponding Pipes objects as values.
+ *         If the file cannot be opened or read, an empty unordered map is returned.
+ * 
+ * @note The CSV file is expected to have the following format:
+ *       "service_point_a,service_point_b,capacity,code,direction"
+ *       Each field is separated by a comma.
+ */
+
+unordered_map<int,Pipe> getPipes(const string &filename){
+  unordered_map<int,Pipe> pipeMap;
+
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cerr << "Error opening file: " << filename << endl;
+        return pipeMap; // Return empty vector
+    }
+    
+    string line;
+    getline(file, line); // Skip header line
+
+    int numberId = 1;
+
+    while (getline(file, line)) {
+        stringstream ss(line);
+
+        string service_point_a, service_point_b,capacity,direction;
+        getline(ss, service_point_a, ',');
+        getline(ss, service_point_b, ',');
+        getline(ss, capacity, ',');
+        getline(ss, direction, ',');
+        
+        // Convert strings to appropriate types
+        int capacity_num = stoi(capacity);
+        int direction_num = stoi(direction);
+
+        if(direction_num == 1){
+            Pipe pipe(numberId,service_point_a,service_point_b,capacity_num,direction_num);
+            pipeMap[numberId] = pipe;
+            numberId++;
+        }
+        else{
+            
+            Pipe pipe1(numberId,service_point_a,service_point_b,capacity_num,direction_num);
+            pipeMap[numberId] = pipe1;
+
+            numberId++;
+            Pipe pipe2(numberId,service_point_b,service_point_a,capacity_num,direction_num);
+            pipeMap[numberId] = pipe2;
+            numberId++;
+        }
+
+    }
+
+ file.close();
+
+  return pipeMap;
+} 
+
+/**
+ * @brief Constructs a graph from a CSV file containing service point connections and capacities.
+ * 
+ * This function reads data from a CSV file containing information about connections between service points
+ * in a network, along with their capacities. It constructs a graph representation of this network.
+ * 
+ * @param filename The name of the CSV file to read service point data from.
+ * @return A graph representing the service point network, with vertices representing service points
+ *         and edges representing connections between them with corresponding capacities.
+ *         If the file cannot be opened or read, an empty graph is returned.
+ * 
+ * @note The CSV file is expected to have the following format:
+ *       "service_point_a,service_point_b,capacity,direction"
+ *       Each field is separated by a comma. 'direction' field should be 0 for bidirectional edges
+ *       and 1 for unidirectional edges.
+ * 
+ */
 
 Graph<string> construct_graph(const string &filename){
     Graph<string> g;
@@ -214,58 +332,3 @@ Graph<string> construct_graph(const string &filename){
   return g;
 }
 
-
-
-
-
-
-
-
-
-
-/*int main(){
-    Graph<string> graph = construct_graph("Project1DataSetSmall/Project1DataSetSmall/Pipes_Madeira.csv");
-
-    cout << "Numero de vertices: " << graph.getNumVertex() << endl;
-
-    vector<Vertex<string>*> v = graph.getVertexSet();
-
-    for (auto vertexPtr : v) {
-    std::cout << vertexPtr->getInfo() << std::endl; // Supondo que getInfo() retorna o conteúdo do vértice como uma string
-}
-
-    
-
-
-    
-
-
-
-    
-    /*unordered_map<string,City> cities;
-
-    cities = getCities("Project1DataSetSmall/Project1DataSetSmall/Cities_Madeira.csv");
-    
-   string searchCode = "C_4";
-    auto it = cities.find(searchCode);
-   
-   
-    if (it != cities.end()) {
-        // Found the city
-        City& city= it->second;
-        cout << "City: " << city.getCity() << endl;
-        cout << "Id: " << city.getId() << endl;
-        
-        cout << "Code: " << city.getCode() << endl;
-        cout << "Demand: " << city.getDemand() << endl;
-        cout << "Population: " << city.getPopulation() << endl;
-        
-    } else {
-        cout << "City with code " << searchCode << " not found." << endl;
-    }
-
-  
-  return 0;
-    
-}
-*/

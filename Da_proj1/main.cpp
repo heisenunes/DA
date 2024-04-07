@@ -19,6 +19,7 @@ Graph<string> g = construct_graph("Project1DataSetSmall/Project1DataSetSmall/Pip
 unordered_map<string, Reservoir> reservoirs = getReservoirs("Project1DataSetSmall/Project1DataSetSmall/Reservoirs_Madeira.csv");
 unordered_map<string, Station> stations = getStations("Project1DataSetSmall/Project1DataSetSmall/Stations_Madeira.csv");
 unordered_map<string, City> cities = getCities("Project1DataSetSmall/Project1DataSetSmall/Cities_Madeira.csv");
+unordered_map<int,Pipe> pipes = getPipes("Project1DataSetSmall/Project1DataSetSmall/Pipes_Madeira.csv");
 
 
 bool validChoice = false;
@@ -27,8 +28,10 @@ while(!validChoice){
  cout << "Task to choose: " << endl;
  cout << "T2.1 (1)" << endl;
  cout << "T2.2 (2)" << endl;
+ cout << "T2.3 (3)" << endl;
  cout << "T3.1 (4)" << endl;
  cout << "T3.2 (5)" << endl;
+ cout << "T3.3 (6)" << endl;
  cout << "Choice: ";
 
  int task_choice;
@@ -52,23 +55,28 @@ while(!validChoice){
     
    double maxFlow = edmondsKarp(&g, "S", code);
    cout << "(City_code: " << code << ", Max flow: " << maxFlow<< ")" << endl;
-   for(auto v: g.getVertexSet()){
-      if(v->getInfo() == code){
-        auto it = cities.find(v->getInfo());
-          if(it->second.getDemand() > maxFlow){
-            cout << "(City_code: " << code << ", Max flow: " << maxFlow<< ")" << endl;
-          }
-          else{
-            cout << "(City_code: " << code << ")" << "Max flow: " << it->second.getDemand() << endl;
-          }
-      }
-    }
+   
     validChoice = true;
  }
  else if(task_choice == 2){
    
    t2_2(&g);
      
+   validChoice = true;
+ }
+
+ else if(task_choice == 3){
+
+   for (const auto& pair : cities) {
+     cout << pair.second.getCity() << " (" << pair.second.getCode() << ")" << endl;
+   }
+   cout << endl;
+
+  cout << "Choose City: ";
+    string code;
+    cin >> code;
+
+    t2_3(&g,"S",code);
    validChoice = true;
  }
   else if(task_choice == 4) {
@@ -97,9 +105,21 @@ while(!validChoice){
 
     validChoice = true;
   }
- else{
+ else if(task_choice == 6){
+
+  int numberId;
+
+   cout << "Pipes: " << endl;
+    for(const auto &pair: pipes){
+      cout << "(" << pair.second.getService_point_a() << "," << pair.second.getService_point_b() << ") " << "(" << pair.first << ")" << endl; 
+    }
     cout << endl;
-    cout << "Invalid Choice. Please try again!" << endl;
+    cout << "Choose the edge to be removed: ";
+    cin >> numberId;
+
+    t3_3(&g, numberId);
+
+    validChoice = true;
  }
 }
  

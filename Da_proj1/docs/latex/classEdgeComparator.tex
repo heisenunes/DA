@@ -1,0 +1,51 @@
+\hypertarget{classEdgeComparator}{}\doxysection{Edge\+Comparator$<$ T $>$ Class Template Reference}
+\label{classEdgeComparator}\index{EdgeComparator$<$ T $>$@{EdgeComparator$<$ T $>$}}
+
+
+Comparator class to sort edges based on their capacity to flow ratio or by flow if the ratio is equal.  
+
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{classEdgeComparator_a660de990fa5e79c78dd75a13de822751}{operator()}} (const Edge$<$ T $>$ $\ast$a, const Edge$<$ T $>$ $\ast$b) const
+\begin{DoxyCompactList}\small\item\em Compares two edges for sorting purposes. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\subsubsection*{template$<$class T$>$\newline
+class Edge\+Comparator$<$ T $>$}
+
+Comparator class to sort edges based on their capacity to flow ratio or by flow if the ratio is equal. 
+
+Balance Flow 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classEdgeComparator_a660de990fa5e79c78dd75a13de822751}\label{classEdgeComparator_a660de990fa5e79c78dd75a13de822751}} 
+\index{EdgeComparator$<$ T $>$@{EdgeComparator$<$ T $>$}!operator()@{operator()}}
+\index{operator()@{operator()}!EdgeComparator$<$ T $>$@{EdgeComparator$<$ T $>$}}
+\doxysubsubsection{\texorpdfstring{operator()()}{operator()()}}
+{\footnotesize\ttfamily template$<$class T $>$ \\
+bool \mbox{\hyperlink{classEdgeComparator}{Edge\+Comparator}}$<$ T $>$\+::operator() (\begin{DoxyParamCaption}\item[{const Edge$<$ T $>$ $\ast$}]{a,  }\item[{const Edge$<$ T $>$ $\ast$}]{b }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Compares two edges for sorting purposes. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em a} & Pointer to the first edge. \\
+\hline
+{\em b} & Pointer to the second edge. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true If the first edge has a lower capacity to flow ratio than the second edge or, if the ratios are equal, true if the first edge has a greater flow. 
+
+false Otherwise. 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+tasks.\+cpp\end{DoxyCompactItemize}
