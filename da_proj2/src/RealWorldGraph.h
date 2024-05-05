@@ -32,6 +32,7 @@ class RealWorldGraph {
 
     };
 
+public:
     RealWorldGraph();
     explicit RealWorldGraph(int nVertices);
 
