@@ -1,0 +1,68 @@
+#include <iostream>
+#include "tasks.cpp"
+#include "parser.cpp"
+
+using namespace std;
+
+int main() {
+    
+
+    bool validChoice = false;
+    int task_choice;
+
+    while(!validChoice){
+        cout << "Choose a task: " << std::endl;
+        cout << "T2.1 - Backtracking Algorithm (1)" << std::endl;
+        cout << "Choice: ";
+
+        cin >> task_choice;
+        cout << endl;
+
+        string code;
+
+        if (task_choice == 1){
+
+            cout << "What Graph do You Want? " << endl;
+            cout << "Toy Graph - Tourism (1)" << endl;
+            cout << "Toy Graph - Stadiums (2)" << endl;
+            cout << "Toy Graph - Shipping (3)" << endl;
+            cout << "Choice: ";
+
+            cin >> task_choice;
+            cout << endl;
+
+            Graph<int> g = construct_toygraph("Datasets/Toy-Graphs/shipping.csv");
+
+            std::cout << "Starting Backtracking Algorithm" << std::endl;
+           
+            //dataparser.createToyGraph(task_choice - 1);
+
+           /* cout << "Do you want to use debug mode to see discarded paths as well?" << endl;
+            cout << "0 - No" << endl;
+            cout << "1 - Yes" << endl;
+            cout << "Choice: ";
+            cin >> task_choice;
+            cout << endl;
+            */
+
+            //dataparser.createToyGraph(1);
+          //  ToyGraph toyGraph = dataparser.getToyGraph();
+            //dataparser.printToyGraph();
+
+            float minDistance;
+            //if (task_choice == 1){minDistance = toyGraph.tspDebug();}
+            //else {minDistance = toyGraph.tsp();}
+
+            minDistance = tsp(&g);
+
+            std::cout << "Minimum distance traveled is " << minDistance << std::endl;
+
+
+            validChoice = true;
+        }
+    }
+
+    return 0;
+
+
+}
