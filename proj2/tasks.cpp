@@ -35,6 +35,19 @@ EdgeWeightMap precomputeEdgeWeights(Graph<int>* g) {
     return edgeWeights;
 }
 
+/**
+ * @brief function that solves the Traveling Salesman Problem (TSP) using backtracking approach
+ * 
+ * @param g Pointer to the graph.
+ * @param currVertex Vertex being visited.
+ * @param currentPath Path being explored
+ * @param bestPath Mininum cost path found until now
+ * @param startVertex The starting vertex
+ * @param numVisited The number of vertices visited so far.
+ * @param currentCost The cost of the path being explored
+ * @param minCost The cost of the best path found until now
+ */
+
 void tspBacktracking(Graph<int> *g, int currVertex,vector<int>& currentPath, vector<int>& bestPath,
                                int startVertex, int numVisited, float currentCost, float& minCost) {
 
@@ -50,7 +63,7 @@ void tspBacktracking(Graph<int> *g, int currVertex,vector<int>& currentPath, vec
 
   // cout << edge_cost << endl;
     
-    // All vertices are visited and there is a return path to the start //
+    // all vertices are visited and there is a return path to the start //
     if (numVisited == g->getNumVertex() && edge_cost != std::numeric_limits<float>::infinity()) {
         float totalCost = currentCost + edge_cost;
         if (totalCost < minCost) {
@@ -74,6 +87,13 @@ void tspBacktracking(Graph<int> *g, int currVertex,vector<int>& currentPath, vec
         }
     }
 }
+
+/**
+ * @brief Function to initialize and solve the Traveling Salesman Problem (TSP)
+ * 
+ * @param g Pointer to the graph
+ * @return The cost of the best path found 
+ */
 
 float tsp(Graph<int> *g){
     for(auto v: g->getVertexSet()){
@@ -103,7 +123,6 @@ float tsp(Graph<int> *g){
 
 }
 
-// Assuming you have definitions for Graph, Vertex, and Edge classes
 
 template <class T>
 Graph<T> primMST(Graph<T> * g) {
