@@ -85,7 +85,10 @@ int main() {
             cout << "Extra fully connected Graph- edges_700(12)" << endl;
             cout << "Extra fully connected Graph- edges_800(13)" << endl;
             cout << "Extra fully connected Graph- edges_900(14)" << endl;
-            
+            cout << "Real world graph 1(15)" << endl;
+            cout << "Real world graph 1(16)" << endl;
+            cout << "Real world graph 1(17)" << endl;
+
             
             cout << "Graph Choice: ";
             cin >> graph_choice;
@@ -135,6 +138,12 @@ int main() {
                   break;
                   case 14:
                     g = construct_extra_fully_connected("Datasets/Extra-Fully-Connected-Graphs/edges_900.csv");
+                  case 15:
+                    g = construct_realWorld("Datasets/Real-world Graphs/Real-world Graphs/graph1/nodes.csv", "Datasets/Real-world Graphs/Real-world Graphs/graph1/edges.csv");
+                  case 16:
+                    g = construct_realWorld("Datasets/Real-world Graphs/Real-world Graphs/graph2/nodes.csv", "Datasets/Real-world Graphs/Real-world Graphs/graph2/edges.csv");
+                  case 17:
+                    g = construct_realWorld("Datasets/Real-world Graphs/Real-world Graphs/graph3/nodes.csv", "Datasets/Real-world Graphs/Real-world Graphs/graph3/edges.csv");
                   break;
 
                   default:
